@@ -10,6 +10,8 @@ import {
 	OPENID_TOLERANCE,
 	OPENID_RESOURCE,
 	OPENID_CONFIG,
+	OPENID_TOKEN_ENDPOINT,
+	OPENID_INFO_ENDPOINT
 } from "$env/static/private";
 import { sha256 } from "$lib/utils/sha256";
 import { z } from "zod";
@@ -17,6 +19,9 @@ import { dev } from "$app/environment";
 import type { Cookies } from "@sveltejs/kit";
 import { collections } from "./database";
 import JSON5 from "json5";
+import { AuthenticationClient } from "authing-js-sdk";
+import axios from 'axios';
+import qs from "querystring";
 
 export interface OIDCSettings {
 	redirectURI: string;
@@ -45,6 +50,8 @@ export const OIDConfig = z
 		),
 		TOLERANCE: stringWithDefault(OPENID_TOLERANCE),
 		RESOURCE: stringWithDefault(OPENID_RESOURCE),
+		TOKEN_ENDPOINT: stringWithDefault(OPENID_TOKEN_ENDPOINT),
+		INFO_ENDPOINT: stringWithDefault(OPENID_INFO_ENDPOINT),
 	})
 	.parse(JSON5.parse(OPENID_CONFIG));
 
@@ -93,16 +100,27 @@ export async function generateCsrfToken(sessionId: string, redirectUrl: string):
 	).toString("base64");
 }
 
-async function getOIDCClient(settings: OIDCSettings): Promise<BaseClient> {
-	const issuer = await Issuer.discover(OIDConfig.PROVIDER_URL);
+async function getOIDCClient(settings: OIDCSettings): Promise<BaseClient | AuthenticationClient> {
 
-	return new issuer.Client({
-		client_id: OIDConfig.CLIENT_ID,
-		client_secret: OIDConfig.CLIENT_SECRET,
-		redirect_uris: [settings.redirectURI],
-		response_types: ["code"],
-		[custom.clock_tolerance]: OIDConfig.TOLERANCE || undefined,
-	});
+	if (OIDConfig.PROVIDER_URL.includes("authing")) {
+		return new AuthenticationClient({
+			appId: OIDConfig.CLIENT_ID, // 应用 ID
+			secret: OIDConfig.CLIENT_SECRET,// 应用 Secret
+			appHost: OIDConfig.PROVIDER_URL,// 应用对应的用户池域名
+			redirectUri: settings.redirectURI,// 认证完成后的重定向目标 URL
+		});
+	} else {
+		const issuer = await Issuer.discover(OIDConfig.PROVIDER_URL);
+
+		return new issuer.Client({
+			client_id: OIDConfig.CLIENT_ID,
+			client_secret: OIDConfig.CLIENT_SECRET,
+			redirect_uris: [settings.redirectURI],
+			response_types: ["code"],
+			[custom.clock_tolerance]: OIDConfig.TOLERANCE || undefined,
+		});
+	}
+
 }
 
 export async function getOIDCAuthorizationUrl(
@@ -110,21 +128,62 @@ export async function getOIDCAuthorizationUrl(
 	params: { sessionId: string }
 ): Promise<string> {
 	const client = await getOIDCClient(settings);
-	const csrfToken = await generateCsrfToken(params.sessionId, settings.redirectURI);
+	if (OIDConfig.PROVIDER_URL.includes("authing")) {
+		return (client as AuthenticationClient).buildAuthorizeUrl({
+			scope: OIDConfig.SCOPES
+		})
 
-	return client.authorizationUrl({
-		scope: OIDConfig.SCOPES,
-		state: csrfToken,
-		resource: OIDConfig.RESOURCE || undefined,
-	});
+	} else {
+		const csrfToken = await generateCsrfToken(params.sessionId, settings.redirectURI)
+		return (client as BaseClient).authorizationUrl({
+			scope: OIDConfig.SCOPES,
+			state: csrfToken,
+			resource: OIDConfig.RESOURCE || undefined,
+		});
+	}
+
 }
 
-export async function getOIDCUserData(settings: OIDCSettings, code: string): Promise<OIDCUserInfo> {
+export async function getOIDCUserData(settings: OIDCSettings, code: string) {
 	const client = await getOIDCClient(settings);
-	const token = await client.callback(settings.redirectURI, { code });
-	const userData = await client.userinfo(token);
+	if (OIDConfig.PROVIDER_URL.includes("authing")) {
+		console.log("code:", code)
+		const code2tokenResponse = await axios.post(OIDConfig.TOKEN_ENDPOINT,
+			qs.stringify({
+				code,
+				client_id: OIDConfig.CLIENT_ID,
+				client_secret: OIDConfig.CLIENT_SECRET,
+				grant_type: "authorization_code",
+				redirect_uri: settings.redirectURI,
+			}), {headers: {"Content-Type": "application/x-www-form-urlencoded",},
+			}
+		);
 
-	return { token, userData };
+		const token2UserInfoResponse = await axios.get(
+			`${OIDConfig.INFO_ENDPOINT}?access_token=` + code2tokenResponse.data.access_token
+		);
+
+		let userData = token2UserInfoResponse.data
+		userData.preferred_username = userData.email ? userData.email : userData.phone_number;
+		userData.name = userData.preferred_username
+		delete userData.phone_number
+		delete userData.phone_number_verified
+		delete userData.email_verified
+		if (userData.email == null) {
+			delete userData.email
+		}
+
+		return {userData};
+
+	} else {
+		const token = await (client as BaseClient).callback(settings.redirectURI, { code });
+		const userData = await (client as BaseClient).userinfo(token);
+
+		return { token, userData };
+	}
+
+
+
 }
 
 export async function validateAndParseCsrfToken(
