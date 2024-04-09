@@ -4,5 +4,14 @@
 	"editor.codeActionsOnSave": {
 		"source.fixAll": "explicit"
 	},
-	"eslint.validate": ["javascript", "svelte"]
+	"eslint.validate": [
+		"javascript",
+		"svelte"
+	],
+	"[typescript]": {
+		"editor.defaultFormatter": "vscode.typescript-language-features"
+	},
+	"[dotenv]": {
+		"editor.defaultFormatter": "foxundermoon.shell-format"
+	}
 }

@@ -82,9 +82,8 @@ async function getChatPromptRender(
 	let tokenizer: PreTrainedTokenizer;
 
 	if (!m.tokenizer) {
-		return compileTemplate<ChatTemplateInput>(
-			"{{#if @root.preprompt}}<|im_start|>system\n{{@root.preprompt}}<|im_end|>\n{{/if}}{{#each messages}}{{#ifUser}}<|im_start|>user\n{{content}}<|im_end|>\n<|im_start|>assistant\n{{/ifUser}}{{#ifAssistant}}{{content}}<|im_end|>\n{{/ifAssistant}}{{/each}}",
-			m
+		throw new Error(
+			"No tokenizer specified and no chat prompt template specified for model " + m.name
 		);
 	}
 

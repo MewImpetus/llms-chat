@@ -1,10 +1,26 @@
 import { redirect, error } from "@sveltejs/kit";
-import { getOIDCUserData, validateAndParseCsrfToken } from "$lib/server/auth";
+import { OIDConfig, getOIDCUserData, validateAndParseCsrfToken } from "$lib/server/auth";
 import { z } from "zod";
 import { base } from "$app/paths";
 import { updateUser } from "./updateUser";
 import { ALLOWED_USER_EMAILS } from "$env/static/private";
 import JSON5 from "json5";
+
+// 提取了验证电子邮件的函数
+function validateEmail(userData) {
+	if (allowedUserEmails.length > 0) {
+		if (!userData.email) {
+			throw error(403, "User not allowed: email not returned");
+		}
+		const emailVerified = userData.email_verified ?? true;
+		if (!emailVerified) {
+			throw error(403, "User not allowed: email not verified");
+		}
+		if (!allowedUserEmails.includes(userData.email)) {
+			throw error(403, "User not allowed");
+		}
+	}
+}
 
 const allowedUserEmails = z
 	.array(z.string().email())
@@ -31,29 +47,21 @@ export async function load({ url, locals, cookies, request, getClientAddress }) 
 		})
 		.parse(Object.fromEntries(url.searchParams.entries()));
 
-	const csrfToken = Buffer.from(state, "base64").toString("utf-8");
-
-	const validatedToken = await validateAndParseCsrfToken(csrfToken, locals.sessionId);
-
-	if (!validatedToken) {
-		throw error(403, "Invalid or expired CSRF token");
+	let redirectURI;
+	if (OIDConfig.PROVIDER_URL.includes("authing")) {
+		redirectURI = `${url.origin}${base}/login/callback`;
+	} else {
+		const csrfToken = Buffer.from(state, "base64").toString("utf-8");
+		const validatedToken = await validateAndParseCsrfToken(csrfToken, locals.sessionId);
+		if (!validatedToken) {
+			throw error(403, "Invalid or expired CSRF token");
+		}
+		redirectURI = validatedToken.redirectUrl;
 	}
 
-	const { userData } = await getOIDCUserData({ redirectURI: validatedToken.redirectUrl }, code);
+	const { userData } = await getOIDCUserData({ redirectURI: redirectURI }, code);
 
-	// Filter by allowed user emails
-	if (allowedUserEmails.length > 0) {
-		if (!userData.email) {
-			throw error(403, "User not allowed: email not returned");
-		}
-		const emailVerified = userData.email_verified ?? true;
-		if (!emailVerified) {
-			throw error(403, "User not allowed: email not verified");
-		}
-		if (!allowedUserEmails.includes(userData.email)) {
-			throw error(403, "User not allowed");
-		}
-	}
+	validateEmail(userData);
 
 	await updateUser({
 		userData,
