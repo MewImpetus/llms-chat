@@ -235,7 +235,7 @@
 						>
 							<img
 								class="h-3.5 w-3.5 rounded"
-								src="http://{hostname}/favicon.ico"
+								src="https://api.iowen.cn/favicon/{hostname}.png"
 								alt="{title} favicon"
 							/>
 							<div>{hostname.replace(/^www\./, "")}</div>
