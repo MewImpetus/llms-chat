@@ -13,6 +13,9 @@
 		if (!from?.url.pathname.includes("settings")) {
 			previousPage = from?.url.toString() || previousPage;
 		}
+		if(!previousPage){
+			previousPage = "/"
+		}
 	});
 
 	const settings = useSettingsStore();

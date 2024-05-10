@@ -19,6 +19,9 @@
 
 	$: assistant = data.assistants.find((el) => el._id.toString() === $page.params.assistantId);
 
+	$: displayText = assistant && typeof assistant.userCount === 'number' && assistant.userCount > 2000 ? '****' : assistant?.preprompt;
+
+
 	const settings = useSettingsStore();
 
 	$: isActive = $settings.activeModel === $page.params.assistantId;
@@ -189,7 +192,8 @@
 					{/if}
 				{/each}
 			{:else}
-				{assistant?.preprompt}
+				<!-- {assistant?.preprompt} -->
+				{ displayText }
 			{/if}
 		</div>
 

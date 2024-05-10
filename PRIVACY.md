@@ -1,42 +1,23 @@
-## Privacy
+## 使命和愿景
 
-> Last updated: April 15, 2024
+#### 让先进技术触手可及
+我们的愿景是打破传统技术服务的高成本和复杂性壁垒，使每个人和每个组织都能轻松访问并利用先进的人工智能技术。我们致力于创造一个无处不在的智能助手环境，无论是个人用户还是企业客户，都能以极具竞争力的价格获得强大的AI支持，从而推动社会和经济的普遍增长和进步。
 
-Users of HuggingChat are authenticated through their HF user account.
+#### 提供可靠、高效、易于访问的AI服务
+我们的使命是通过持续的技术创新和优化，为全球用户提供高性价比的人工智能助手和稳健的大模型服务API。我们的平台设计旨在为企业和个人提供简单、直观和高效的解决方案，帮助他们在数据分析、自动化任务处理、客户服务和决策支持等方面实现更高的效率和更好的成果。通过这些服务，我们希望促进技术普及化，使每个人都能利用AI的力量来增强其日常工作和生活的质量。
 
-We endorse Privacy by Design. As such, your conversations are private to you and will not be shared with anyone, including model authors, for any purpose, including for research or model training purposes.
+## 最好的ChatGPT开源替代
 
-You conversation data will only be stored to let you access past conversations. You can click on the Delete icon to delete any past conversation at any moment.
+该应用程序的目标是展示现在可以构建 ChatGPT 的开源替代品。 💪
 
-🗓 Please also consult huggingface.co's main privacy policy at <https://huggingface.co/privacy>. To exercise any of your legal privacy rights, please send an email to <privacy@huggingface.co>.
+我们的目标是始终提供多种最先进的开源大模型，因此我们会随着时间的推移轮换可用的模型。
 
-## About available LLMs
+目前我们已经上线了直逼GPT4的[Llama3](https://llms.chat/models/meta-llama/Meta-Llama-3-70B-Instruct)和[Command R Plus](https://llms.chat/models/CohereForAI/c4ai-command-r-plus)模型。 
 
-The goal of this app is to showcase that it is now possible to build an open source alternative to ChatGPT. 💪
+并且我们会在社区提供大量高效可用的Assistant，普通用户也可创建及分享自己的Assistant。
 
-We aim to always provide a diverse set of state of the art open LLMs, hence we rotate the available models over time.
+## 联系作者
 
-Historically, HuggingChat has been running models such as:
+商务及技术合作或是可爱的小姐姐可以扫描下方二维码添加我的微信：
 
-- [Llama 2 70B](https://huggingface.co/meta-llama/Llama-2-70b-chat-hf)
-- [CodeLlama 35B](https://about.fb.com/news/2023/08/code-llama-ai-for-coding/)
-- [Falcon 180B](https://www.tii.ae/news/technology-innovation-institute-introduces-worlds-most-powerful-open-llm-falcon-180b)
-- [Mistral 7B](https://mistral.ai/news/announcing-mistral-7b/)
-- [Cohere Command R+](https://huggingface.co/chat/models/CohereForAI/c4ai-command-r-plus)
-- [Google Gemma 7B](https://huggingface.co/chat/models/google/gemma-1.1-7b-it)
-
-This is only a partial list. Check the [models](https://huggingface.co/chat/models/) page for up-to-date list of the best available LLMs.
-
-## Technical details
-
-This app is running in a [Space](https://huggingface.co/docs/hub/spaces-overview), which entails that the code for this UI is publicly visible [inside the Space repo](https://huggingface.co/spaces/huggingchat/chat-ui/tree/main).
-
-**Further development takes place on the [huggingface/chat-ui GitHub repo](https://github.com/huggingface/chat-ui).**
-
-The inference backend is running the optimized [text-generation-inference](https://github.com/huggingface/text-generation-inference) on HuggingFace's Inference API infrastructure.
-
-It is therefore possible to deploy a copy of this app to a Space and customize it (swap model, add some UI elements, or store user messages according to your own Terms and conditions). You can also 1-click deploy your own instance using the [Chat UI Spaces Docker template](https://huggingface.co/new-space?template=huggingchat/chat-ui-template).
-
-We welcome any feedback on this app: please participate to the public discussion at <https://huggingface.co/spaces/huggingchat/chat-ui/discussions>
-
-<a target="_blank" href="https://huggingface.co/spaces/huggingchat/chat-ui/discussions"><img src="https://huggingface.co/datasets/huggingface/badges/raw/main/open-a-discussion-xl.svg" title="open a discussion"></a>
+![](https://llms.chat/chatui/wechat.png)

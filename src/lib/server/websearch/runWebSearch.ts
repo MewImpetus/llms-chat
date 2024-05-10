@@ -92,9 +92,9 @@ export async function runWebSearch(
 			const results = await searchWeb(webSearch.searchQuery);
 			webSearch.results =
 				(results.organic_results &&
-					results.organic_results.map((el: { title?: string; link: string; text?: string }) => {
+					results.organic_results.map((el: { title?: string; link: string; snippet?: string }) => {
 						try {
-							const { title, link, text } = el;
+							const { title, link, snippet:text } = el;
 							const { hostname } = new URL(link);
 							return { title, link, hostname, text };
 						} catch (e) {
