@@ -24,8 +24,9 @@ A chat interface using open source models, eg OpenAssistant or Llama. It is a Sv
 3. [Web Search](#web-search)
 4. [Text Embedding Models](#text-embedding-models)
 5. [Extra parameters](#extra-parameters)
-6. [Deploying to a HF Space](#deploying-to-a-hf-space)
-7. [Building](#building)
+6. [Common issues](#common-issues)
+7. [Deploying to a HF Space](#deploying-to-a-hf-space)
+8. [Building](#building)
 
 ## No Setup Deploy
 
@@ -479,8 +480,8 @@ MODELS=`[
           // optionals
           "apiKey": "sk-ant-...",
           "baseURL": "https://api.anthropic.com",
-          defaultHeaders: {},
-          defaultQuery: {}
+          "defaultHeaders": {},
+          "defaultQuery": {}
         }
       ]
   },
@@ -497,8 +498,51 @@ MODELS=`[
           // optionals
           "apiKey": "sk-ant-...",
           "baseURL": "https://api.anthropic.com",
-          defaultHeaders: {},
-          defaultQuery: {}
+          "defaultHeaders": {},
+          "defaultQuery": {}
+        }
+      ]
+  }
+]`
+```
+
+We also support using Anthropic models running on Vertex AI. Authentication is done using Google Application Default Credentials. Project ID can be provided through the `endpoints.projectId` as per the following example:
+
+```
+MODELS=`[
+  {
+      "name": "claude-3-sonnet@20240229",
+      "displayName": "Claude 3 Sonnet",
+      "description": "Ideal balance of intelligence and speed",
+      "parameters": {
+        "max_new_tokens": 4096,
+      },
+      "endpoints": [
+        {
+          "type": "anthropic-vertex",
+          "region": "us-central1",
+          "projectId": "gcp-project-id",
+          // optionals
+          "defaultHeaders": {},
+          "defaultQuery": {}
+        }
+      ]
+  },
+  {
+      "name": "claude-3-haiku@20240307",
+      "displayName": "Claude 3 Haiku",
+      "description": "Fastest, most compact model for near-instant responsiveness",
+      "parameters": {
+         "max_new_tokens": 4096
+      },
+      "endpoints": [
+        {
+          "type": "anthropic-vertex",
+          "region": "us-central1",
+          "projectId": "gcp-project-id",
+          // optionals
+          "defaultHeaders": {},
+          "defaultQuery": {}
         }
       ]
   }
@@ -601,18 +645,29 @@ The service account credentials file can be imported as an environmental variabl
     GOOGLE_APPLICATION_CREDENTIALS = clientid.json
 ```
 
-Make sure docker has access to the file. Afterwards Google Vertex endpoints can be configured as following:
+Make sure your docker container has access to the file and the variable is correctly set.
+Afterwards Google Vertex endpoints can be configured as following:
 
 ```
 MODELS=`[
 //...
     {
-       "name": "gemini-1.0-pro", //model-name
-       "displayName": "Vertex Gemini Pro 1.0",
-       "location": "europe-west3",
-       "apiEndpoint": "", //alternative api endpoint url
+       "name": "gemini-1.5-pro",
+       "displayName": "Vertex Gemini Pro 1.5",
        "endpoints" : [{
-         "type": "vertex"
+          "type": "vertex",
+          "project": "abc-xyz",
+          "location": "europe-west3",
+          "model": "gemini-1.5-pro-preview-0409", // model-name
+
+          // Optional
+          "safetyThreshold": "BLOCK_MEDIUM_AND_ABOVE",
+          "apiEndpoint": "", // alternative api endpoint url,
+          "tools": [{
+            "googleSearchRetrieval": {
+              "disableAttribution": true
+            }
+          }]
        }]
      },
 ]`
@@ -729,6 +784,14 @@ MODELS=`[
 ]`
 ```
 
+## Common issues
+
+### 403：You don't have access to this conversation
+
+Most likely you are running chat-ui over HTTP. The recommended option is to setup something like NGINX to handle HTTPS and proxy the requests to chat-ui. If you really need to run over HTTP you can add `ALLOW_INSECURE_COOKIES=true` to your `.env.local`.
+
+Make sure to set your `PUBLIC_ORIGIN` in your `.env.local` to the correct URL as well.
+
 ## Deploying to a HF Space
 
 Create a `DOTENV_LOCAL` secret to your HF space with the content of your .env.local, and they will be picked up automatically when you run.
@@ -747,17 +810,10 @@ You can preview the production build with `npm run preview`.
 
 ## Config changes for HuggingChat
 
-The config file for HuggingChat is stored in the `.env.template` file at the root of the repository. It is the single source of truth that is used to generate the actual `.env.local` file using our CI/CD pipeline. See [updateProdEnv](https://github.com/huggingface/chat-ui/blob/cdb33a9583f5339ade724db615347393ef48f5cd/scripts/updateProdEnv.ts) for more details.
+The config file for HuggingChat is stored in the `chart/env/prod.yaml` file. It is the source of truth for the environment variables used for our CI/CD pipeline. For HuggingChat, as we need to customize the app color, as well as the base path, we build a custom docker image. You can find the workflow here.
 
 > [!TIP]
-> If you want to make changes to the model config used in production for HuggingChat, you should do so against `.env.template`.
-
-We currently use the following secrets for deploying HuggingChat in addition to the `.env.template` above:
-
-- `MONGODB_URL`
-- `HF_TOKEN`
-- `OPENID_CONFIG`
-- `SERPER_API_KEY`
+> If you want to make changes to the model config used in production for HuggingChat, you should do so against `chart/env/prod.yaml`.
 
 ### Running a copy of HuggingChat locally
 
@@ -782,7 +838,7 @@ SERPER_API_KEY=<your serper API key from step 3>
 MESSAGES_BEFORE_LOGIN=<can be any numerical value, or set to 0 to require login>
 ```
 
-You can then run `npm run updateLocalEnv` in the root of chat-ui. This will create a `.env.local` file which combines the `.env.template` and the `.env.SECRET_CONFIG` file. You can then run `npm run dev` to start your local instance of HuggingChat.
+You can then run `npm run updateLocalEnv` in the root of chat-ui. This will create a `.env.local` file which combines the `chart/env/prod.yaml` and the `.env.SECRET_CONFIG` file. You can then run `npm run dev` to start your local instance of HuggingChat.
 
 ### Populate database
 

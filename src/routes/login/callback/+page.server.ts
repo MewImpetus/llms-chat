@@ -3,7 +3,7 @@ import { OIDConfig, getOIDCUserData, validateAndParseCsrfToken } from "$lib/serv
 import { z } from "zod";
 import { base } from "$app/paths";
 import { updateUser } from "./updateUser";
-import { ALLOWED_USER_EMAILS } from "$env/static/private";
+import { env } from "$env/dynamic/private";
 import JSON5 from "json5";
 
 // 提取了验证电子邮件的函数
@@ -26,7 +26,7 @@ const allowedUserEmails = z
 	.array(z.string().email())
 	.optional()
 	.default([])
-	.parse(JSON5.parse(ALLOWED_USER_EMAILS));
+	.parse(JSON5.parse(env.ALLOWED_USER_EMAILS));
 
 export async function load({ url, locals, cookies, request, getClientAddress }) {
 	const { error: errorName, error_description: errorDescription } = z

@@ -13,15 +13,17 @@ import {
 	OPENID_TOKEN_ENDPOINT,
 	OPENID_INFO_ENDPOINT
 } from "$env/static/private";
+import { env } from "$env/dynamic/private";
 import { sha256 } from "$lib/utils/sha256";
 import { z } from "zod";
 import { dev } from "$app/environment";
 import type { Cookies } from "@sveltejs/kit";
-import { collections } from "./database";
+import { collections } from "$lib/server/database";
 import JSON5 from "json5";
 import { AuthenticationClient } from "authing-js-sdk";
 import axios from 'axios';
 import qs from "querystring";
+import { logger } from "$lib/server/logger";
 
 export interface OIDCSettings {
 	redirectURI: string;
@@ -40,11 +42,11 @@ const stringWithDefault = (value: string) =>
 
 export const OIDConfig = z
 	.object({
-		CLIENT_ID: stringWithDefault(OPENID_CLIENT_ID),
-		CLIENT_SECRET: stringWithDefault(OPENID_CLIENT_SECRET),
-		PROVIDER_URL: stringWithDefault(OPENID_PROVIDER_URL),
-		SCOPES: stringWithDefault(OPENID_SCOPES),
-		NAME_CLAIM: stringWithDefault(OPENID_NAME_CLAIM).refine(
+		CLIENT_ID: stringWithDefault(env.OPENID_CLIENT_ID),
+		CLIENT_SECRET: stringWithDefault(env.OPENID_CLIENT_SECRET),
+		PROVIDER_URL: stringWithDefault(env.OPENID_PROVIDER_URL),
+		SCOPES: stringWithDefault(env.OPENID_SCOPES),
+		NAME_CLAIM: stringWithDefault(env.OPENID_NAME_CLAIM).refine(
 			(el) => !["preferred_username", "email", "picture", "sub"].includes(el),
 			{ message: "nameClaim cannot be one of the restricted keys." }
 		),
@@ -53,16 +55,16 @@ export const OIDConfig = z
 		TOKEN_ENDPOINT: stringWithDefault(OPENID_TOKEN_ENDPOINT),
 		INFO_ENDPOINT: stringWithDefault(OPENID_INFO_ENDPOINT),
 	})
-	.parse(JSON5.parse(OPENID_CONFIG));
+	.parse(JSON5.parse(env.OPENID_CONFIG));
 
 export const requiresUser = !!OIDConfig.CLIENT_ID && !!OIDConfig.CLIENT_SECRET;
 
 export function refreshSessionCookie(cookies: Cookies, sessionId: string) {
-	cookies.set(COOKIE_NAME, sessionId, {
+	cookies.set(env.COOKIE_NAME, sessionId, {
 		path: "/",
 		// So that it works inside the space's iframe
-		sameSite: dev ? "lax" : "none",
-		secure: !dev,
+		sameSite: dev || env.ALLOW_INSECURE_COOKIES === "true" ? "lax" : "none",
+		secure: !dev && !(env.ALLOW_INSECURE_COOKIES === "true"),
 		httpOnly: true,
 		expires: addWeeks(new Date(), 2),
 	});
@@ -209,7 +211,7 @@ export async function validateAndParseCsrfToken(
 			return { redirectUrl: data.redirectUrl };
 		}
 	} catch (e) {
-		console.error(e);
+		logger.error(e);
 	}
 	return null;
 }
