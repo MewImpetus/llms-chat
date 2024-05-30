@@ -153,6 +153,7 @@ export async function endpointCohere(
 	};
 }
 
+
 async function convertStreamToBuffer(webReadableStream: Readable) {
 	return new Promise<string>((resolve, reject) => {
 		const chunks: Buffer[] = [];
