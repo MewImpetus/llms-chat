@@ -8,6 +8,8 @@ import { DEFAULT_SETTINGS } from "$lib/types/Settings";
 import { env } from "$env/dynamic/private";
 import { ObjectId } from "mongodb";
 import type { ConvSidebar } from "$lib/types/ConvSidebar";
+import { allTools } from "$lib/server/tools";
+import { MetricsServer } from "$lib/server/metrics";
 
 export const load: LayoutServerLoad = async ({ locals, depends }) => {
 	depends(UrlDependency.ConversationList);
@@ -104,6 +106,7 @@ export const load: LayoutServerLoad = async ({ locals, depends }) => {
 		}
 	}
 
+	const toolUseDuration = (await MetricsServer.getMetrics().tool.toolUseDuration.get()).values;
 	return {
 		conversations: conversations.map((conv) => {
 			if (settings?.hideEmojiOnSidebar) {
@@ -142,6 +145,7 @@ export const load: LayoutServerLoad = async ({ locals, depends }) => {
 				DEFAULT_SETTINGS.shareConversationsWithModelAuthors,
 			customPrompts: settings?.customPrompts ?? {},
 			assistants: userAssistants,
+			tools: settings?.tools ?? {},
 		},
 		models: models.map((model) => ({
 			id: model.id,
@@ -158,9 +162,22 @@ export const load: LayoutServerLoad = async ({ locals, depends }) => {
 			parameters: model.parameters,
 			preprompt: model.preprompt,
 			multimodal: model.multimodal,
+			tools: model.tools,
 			unlisted: model.unlisted,
 		})),
 		oldModels,
+		tools: allTools
+			.filter((tool) => !tool.isHidden)
+			.map((tool) => ({
+				name: tool.name,
+				displayName: tool.displayName,
+				description: tool.description,
+				isOnByDefault: tool.isOnByDefault,
+				isLocked: tool.isLocked,
+				timeToUseMS:
+					toolUseDuration.find((el) => el.labels.tool === tool.name && el.labels.quantile === 0.9)
+						?.value ?? 15_000,
+			})),
 		assistants: assistants
 			.filter((el) => userAssistantsSet.has(el._id.toString()))
 			.map((el) => ({
@@ -175,6 +192,8 @@ export const load: LayoutServerLoad = async ({ locals, depends }) => {
 			username: locals.user.username,
 			avatarUrl: locals.user.avatarUrl,
 			email: locals.user.email,
+			logoutDisabled: locals.user.logoutDisabled,
+			isAdmin: locals.user.isAdmin ?? false,
 		},
 		assistant,
 		enableAssistants,

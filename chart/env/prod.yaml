@@ -34,33 +34,34 @@ envVars:
     [
       {
         "name" : "CohereForAI/c4ai-command-r-plus",
-        "tokenizer": "Xenova/c4ai-command-r-v01-tokenizer",
+        "tokenizer": "nsarrazin/c4ai-command-r-v01-tokenizer",
         "description": "Command R+ is Cohere's latest LLM and is the first open weight model to beat GPT4 in the Chatbot Arena!",
         "modelUrl": "https://huggingface.co/CohereForAI/c4ai-command-r-plus",
         "websiteUrl": "https://docs.cohere.com/docs/command-r-plus",
         "logoUrl": "https://huggingface.co/datasets/huggingchat/models-logo/resolve/main/cohere-logo.png",
+        "tools": true,
         "parameters": {
           "stop": ["<|END_OF_TURN_TOKEN|>"],
           "truncate" : 28672,
-          "max_new_tokens" : 4096,
+          "max_new_tokens" : 2048,
           "temperature" : 0.3
         },
         "promptExamples" : [
           {
-            "title": "Write an email from bullet list",
-            "prompt": "As a restaurant owner, write a professional email to the supplier to get these products every week: \n\n- Wine (x10)\n- Eggs (x24)\n- Bread (x12)"
+            "title": "Generate a mouse portrait",
+            "prompt": "Generate the portrait of a scientific mouse in its laboratory."
+          }, {
+            "title": "Review a pull request",
+            "prompt": "Review this pull request: https://github.com/huggingface/chat-ui/pull/1131/files"
           }, {
             "title": "Code a snake game",
             "prompt": "Code a basic snake game in python, give explanations for each step."
-          }, {
-            "title": "Assist in a task",
-            "prompt": "How do I make a delicious lemon cheesecake?"
           }
         ]
       },
       {
         "name" : "meta-llama/Meta-Llama-3-70B-Instruct",
-        "description": "Generation over generation, Meta Llama 3 demonstrates state-of-the-art performance on a wide range of industry benchmarks and offers new capabilities, including improved reasoning.",
+        "description": "Meta Llama 3 delivers top performance on various benchmarks and introduces new features like better reasoning.",
         "logoUrl": "https://huggingface.co/datasets/huggingchat/models-logo/resolve/main/meta-logo.png",
         "modelUrl": "https://huggingface.co/meta-llama/Meta-Llama-3-70B-Instruct",
         "websiteUrl": "https://llama.meta.com/llama3/",
@@ -172,7 +173,36 @@ envVars:
             "stop": ["<|im_end|>"]
           }
         },
-          {
+        {
+          "name": "01-ai/Yi-1.5-34B-Chat",
+          "tokenizer": "01-ai/Yi-1.5-34B-Chat",
+          "description" : "Yi-1.5 is an upgraded version of Yi. It is continuously pre-trained on Yi with a high-quality corpus of 500B tokens and fine-tuned on 3M diverse fine-tuning samples.",
+          "logoUrl": "https://huggingface.co/datasets/huggingchat/models-logo/resolve/main/01-ai-logo.png",
+          "modelUrl": "https://huggingface.co/01-ai/Yi-1.5-34B-Chat",
+          "websiteUrl": "https://www.01.ai",
+          "preprompt": "",
+          "chatPromptTemplate": "{{preprompt}}{{#each messages}}{{#ifUser}}<|im_start|>user\\n{{content}}<|im_end|>\\n<|im_start|>assistant\\n{{/ifUser}}{{#ifAssistant}}{{content}}<|im_end|>{{/ifAssistant}}{{/each}}",
+          "parameters": {
+            "stop": ["<|im_end|>"],
+            "temperature": 0.3,
+            "max_new_tokens": 1024,
+            "truncate": 1000,
+            "top_p": 0.8,
+          },
+          "promptExamples": [
+            {
+              "title": "我的名字用中文怎么写？",
+              "prompt": "请扮演一个起名大师，我将会给你一个我的英文名字，教我如何用中文写我的名字。"
+            }, {
+              "title": "写一首诗",
+              "prompt": "请写一首讲 AI 的诗"
+            }, {
+              "title": "工作汇报",
+              "prompt": "写一份工作汇报"
+            }
+          ]
+        },
+        {
         "name" : "google/gemma-1.1-7b-it",
         "description": "Gemma 7B 1.1 is the latest release in the Gemma family of lightweight models built by Google, trained using a novel RLHF method.",
         "websiteUrl" : "https://blog.google/technology/developers/gemma-open-models/",
@@ -326,13 +356,22 @@ externalSecrets:
     ADMIN_API_SECRET: "hub-prod-chat-ui-admin-api-secret"
     USAGE_LIMITS: "hub-prod-chat-ui-usage-limits"
     MESSAGES_BEFORE_LOGIN: "hub-prod-chat-ui-messages-before-login"
+    IP_TOKEN_SECRET: "hub-prod-chat-ui-ip-token-secret"
 
 autoscaling:
   enabled: true
   minReplicas: 6
   maxReplicas: 30
-  targetMemoryUtilizationPercentage: "70"
-  targetCPUUtilizationPercentage: "70"
+  targetMemoryUtilizationPercentage: "50"
+  targetCPUUtilizationPercentage: "50"
+
+resources:
+  requests:
+    cpu: 4
+    memory: 8Gi
+  limits:
+    cpu: 4
+    memory: 8Gi
 
 monitoring:
   enabled: true

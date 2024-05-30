@@ -184,8 +184,6 @@ export async function getOIDCUserData(settings: OIDCSettings, code: string) {
 		return { token, userData };
 	}
 
-
-
 }
 
 export async function validateAndParseCsrfToken(
