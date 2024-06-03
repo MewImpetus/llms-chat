@@ -325,7 +325,7 @@
 						>
 							<img
 								class="h-3.5 w-3.5 rounded"
-								src="https://api.iowen.cn/favicon/{hostname}.png"
+								src="https://api.iowen.cn/favicon/{new URL(link).hostname}.png"
 								alt="{title} favicon"
 							/>
 							<div>{new URL(link).hostname.replace(/^www\./, "")}</div>
