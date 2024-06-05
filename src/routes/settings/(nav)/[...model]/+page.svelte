@@ -42,7 +42,7 @@
 	</div>
 
 	<div class="flex flex-wrap items-center gap-2 md:gap-4">
-		{#if model.modelUrl}
+		<!-- {#if model.modelUrl}
 			<a
 				href={model.modelUrl || "https://huggingface.co/" + model.name}
 				target="_blank"
@@ -52,7 +52,7 @@
 				<CarbonArrowUpRight class="mr-1.5 shrink-0 text-xs " />
 				Model page
 			</a>
-		{/if}
+		{/if} -->
 
 		{#if model.datasetName || model.datasetUrl}
 			<a

@@ -20,7 +20,7 @@ const imageGeneration: BackendTool = {
 	parameterDefinitions: {
 		prompt: {
 			description:
-				"A prompt to generate an image from. Describe the image visually in simple terms, separate terms with a comma.",
+				"A prompt to generate an image from. Describe the image visually in simple English terms, separate terms with a comma.",
 			type: "string",
 			required: true,
 		},
@@ -34,13 +34,13 @@ const imageGeneration: BackendTool = {
 			description: "Width of the generated image.",
 			type: "number",
 			required: false,
-			default: 1024,
+			default: 512,
 		},
 		height: {
 			description: "Height of the generated image.",
 			type: "number",
 			required: false,
-			default: 1024,
+			default: 768,
 		},
 	},
 	async *call({ prompt, numberOfImages, width, height }, { conv, ip, username }) {
