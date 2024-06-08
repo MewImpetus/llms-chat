@@ -90,9 +90,9 @@
 			<p class="text-sm text-gray-500">
 				Model: <span class="font-semibold"> {assistant?.modelId} </span>
 				<span class="text-gray-300">•</span> Created by
-				<a class="underline" href="{base}/assistants?user={assistant?.createdByName}">
+				<!-- <a class="underline" href="{base}/assistants?user={assistant?.createdByName}"> -->
 					**{assistant?.createdByName?.slice(-4)}
-				</a>
+				<!-- </a> -->
 			</p>
 			<div
 				class="flex items-center gap-4 whitespace-nowrap text-sm text-gray-500 hover:*:text-gray-800"
