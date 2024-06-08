@@ -91,7 +91,7 @@
 				Model: <span class="font-semibold"> {assistant?.modelId} </span>
 				<span class="text-gray-300">•</span> Created by
 				<a class="underline" href="{base}/assistants?user={assistant?.createdByName}">
-					{assistant?.createdByName}
+					**{assistant?.createdByName?.slice(-4)}
 				</a>
 			</p>
 			<div
